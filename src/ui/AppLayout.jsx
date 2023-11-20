@@ -12,7 +12,9 @@ function AppLayout() {
   
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
+      // console.log(user.uid);
       checkLogged(user);
+      
     });
     return () => unsubscribe();
   }, []);

@@ -5,6 +5,8 @@ import AppLayout from './ui/AppLayout'
 import Register from './features/Auth/Register'
 import { AuthProvider } from './context/AuthContext'
 import Logout from './ui/Logout'
+import { PostsProvidor } from './context/PostsContext'
+import MainApp from './pages/MainApp'
 
 function App() {
 
@@ -17,7 +19,7 @@ function App() {
       element: <AppLayout />,
       
       children: [
-        { path: '/app', element: <Logout /> },
+        { path: '/app', element: <MainApp />},
         {
           path: '/register',
           element: <Register />,
@@ -29,10 +31,12 @@ function App() {
 
   return (
     <AuthProvider >
+      <PostsProvidor >
 
    <RouterProvider router={router}>
 
    </RouterProvider>
+      </PostsProvidor>
     </AuthProvider>
   )
 }

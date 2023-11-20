@@ -1,6 +1,8 @@
 import { createContext, useContext, useReducer } from "react";
 import { auth } from "../../firebase";
 import { createUserWithEmailAndPassword, signOut, signInWithEmailAndPassword} from "firebase/auth";
+import {  addDoc , setDoc, doc, collection, getFirestore, serverTimestamp} from 'firebase/firestore';
+import { firebaseApp } from "../../firebase";
 
 const AuthContext = createContext();
 
@@ -68,8 +70,28 @@ function AuthProvider({ children }) {
         email,
         password
       );
-      dispatch({ type: "REGISTER", payload: { email, password } });
+
+      // New feature may delete or modify
+      // New feature to add user to users collection once signUp
       const user = userCredential.user;
+      const userObject = user.toJSON();
+      console.log(userObject);
+      const currentUserInfo = {
+        displayName: "Ahmed",
+        email: userObject.email,
+        gender: "male",
+        timestamp: serverTimestamp(),
+        photoURL: "fadfad",
+        posts: [],
+        uid: userObject.uid,
+      }
+      await addUserToCollection(currentUserInfo, userObject.uid)
+      
+      dispatch({ type: "REGISTER", payload: { email, password } });
+
+      
+
+
       console.log(isLogged);
       console.log("Registered user:", user);
     } catch (error) {
@@ -92,8 +114,14 @@ function AuthProvider({ children }) {
 
   function checkLogged(user) {
     
-    if(user) dispatch({ type: "CHECKLOGGED", payload: { user } });
+    if(user) dispatch({ type: "CHECKLOGGED", payload:  user  });
     else dispatch({ type: "LOGOUT" });
+
+    // Test convert user to object
+    // const userObject = user.toJSON();
+    // console.log(userObject);
+    // console.log(user);
+    console.log(user.uid);
   }
  async function logout() {
     
@@ -108,6 +136,20 @@ function AuthProvider({ children }) {
     
   }
 
+  // New feature to add user to users collection once signUp
+  async function addUserToCollection(user, userId) {
+    try {
+      const db = getFirestore(firebaseApp);
+
+      const usersRef = collection(db, 'users');
+      const userDocRef = doc(usersRef, userId);
+     await setDoc(userDocRef, user, { merge: true });
+    // await addDoc(usersRef , user);
+    console.log("user added to collection");
+    } catch (error) {
+      console.log("Error adding user to collection", error);
+    }
+  }
   return (
     <AuthContext.Provider value={{ user, isLogged,checkLogged, handleSignUp,handleSignIn, logout, isLoading }}>
       {children}
