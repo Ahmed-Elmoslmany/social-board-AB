@@ -11,7 +11,7 @@ function Register() {
 
   async function handleClick(e) {
     e.preventDefault();
-    if(newUser) handleSignUp(email, password);
+    if(newUser) handleSignUp(email, password, username);
     else handleSignIn(email, password);    
 
   }

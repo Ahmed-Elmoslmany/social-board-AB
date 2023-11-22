@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer } from "react";
 import { auth } from "../../firebase";
-import { createUserWithEmailAndPassword, signOut, signInWithEmailAndPassword} from "firebase/auth";
+import { createUserWithEmailAndPassword, signOut, signInWithEmailAndPassword, updateProfile,} from "firebase/auth";
 import {  addDoc , setDoc, doc, collection, getFirestore, serverTimestamp} from 'firebase/firestore';
 import { firebaseApp } from "../../firebase";
 
@@ -62,22 +62,22 @@ const reducer = (state, action) => {
 function AuthProvider({ children }) {
   const [{ user, isLogged, isLoading }, dispatch] = useReducer(reducer, initialState);
 
-  async function handleSignUp(email, password) {
+  async function handleSignUp(email, password, username) {
     dispatch({ type: "ISLOADING" });
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
-        password
+        password,
       );
-
+      await updateProfile(userCredential.user, { displayName: username });
       // New feature may delete or modify
       // New feature to add user to users collection once signUp
       const user = userCredential.user;
       const userObject = user.toJSON();
       console.log(userObject);
       const currentUserInfo = {
-        displayName: "Ahmed",
+        displayName: userObject.displayName,
         email: userObject.email,
         gender: "male",
         timestamp: serverTimestamp(),
@@ -87,7 +87,7 @@ function AuthProvider({ children }) {
       }
       await addUserToCollection(currentUserInfo, userObject.uid)
       
-      dispatch({ type: "REGISTER", payload: { email, password } });
+      dispatch({ type: "REGISTER", payload: currentUserInfo });
 
       
 
@@ -117,10 +117,7 @@ function AuthProvider({ children }) {
     if(user) dispatch({ type: "CHECKLOGGED", payload:  user  });
     else dispatch({ type: "LOGOUT" });
 
-    // Test convert user to object
-    // const userObject = user.toJSON();
-    // console.log(userObject);
-    // console.log(user);
+               
     console.log(user.uid);
   }
  async function logout() {
